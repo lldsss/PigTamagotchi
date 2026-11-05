@@ -1,0 +1,13 @@
+.env
+.env.*
+.venv/
+.git/
+.agents/
+.codex/
+.aws/
+data/
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+.ruff_cache/
+.pytest_cache/
