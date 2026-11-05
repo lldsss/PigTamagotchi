@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fff7f8">
+    <title>Пуня · маленькое счастье</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <a class="brand" href="/" aria-label="Пуня, главная">
+          <span class="brand-icon">♧</span> пуня<span class="brand-dot">.</span>
+        </a>
+        <div class="wallet" aria-label="Монеты">
+          <span class="coin">✦</span>
+          <b id="coins">—</b>
+        </div>
+      </header>
+      <div class="intro">
+        <span class="eyebrow">ТВОЁ МАЛЕНЬКОЕ СЧАСТЬЕ</span>
+        <h1>Дома лучше, когда ты рядом<span> ♡</span>
+        </h1>
+      </div>
+      <section class="pet-card" aria-label="Комната Пуни">
+        <div class="room-head">
+          <span class="room-label">
+            <i></i>
+            <span id="room-name">Уютный уголок</span>
+          </span>
+          <button id="help" class="help-button" aria-label="Как играть">?</button>
+        </div>
+        <div class="scene" id="scene">
+          <div class="window">
+            <span class="sun"></span>
+            <span class="cloud"></span>
+          </div>
+          <div class="wall-art">♡</div>
+          <div class="plant">
+            <span>♧</span>
+            <i></i>
+          </div>
+          <div class="garland" aria-hidden="true">✧ · ♡ · ✧ · ♡ · ✧</div>
+          <div class="speech" id="speech">Привет! Я тебя ждала ♡</div>
+          <div class="rug"></div>
+          <div class="pig-shadow"></div>
+          <button class="pig" id="pig" aria-label="Погладить Пуню">
+            <img src="/pig.svg" alt="Пуня — розовая свинка с бантиком" draggable="false">
+          </button>
+          <div class="flowers" aria-hidden="true">✿</div>
+          <div class="cushion" aria-hidden="true"></div>
+          <span class="sparkle s1">✧</span>
+          <span class="sparkle s2">✧</span>
+        </div>
+        <div class="pet-info">
+          <div>
+            <h2>Пуня <span>♀</span>
+            </h2>
+            <p id="mood">Знакомимся…</p>
+          </div>
+          <span class="level" id="level">Уровень —</span>
+        </div>
+        <div class="experience">
+          <div class="experience-label">
+            <span id="level-name">Крошка</span>
+            <span id="xp">—</span>
+          </div>
+          <div class="progress">
+            <i id="xp-bar"></i>
+          </div>
+        </div>
+      </section>
+      <section class="needs" aria-label="Самочувствие свинки">
+        <div class="need" style="--accent:#e7a763">
+          <div>
+            <span>🥕</span>
+            <b id="satiety-value">—</b>
+          </div>
+          <label>Сытость</label>
+          <div class="meter">
+            <i id="satiety-bar"></i>
+          </div>
+        </div>
+        <div class="need" style="--accent:#df94ac">
+          <div>
+            <span>♡</span>
+            <b id="joy-value">—</b>
+          </div>
+          <label>Счастье</label>
+          <div class="meter">
+            <i id="joy-bar"></i>
+          </div>
+        </div>
+        <div class="need" style="--accent:#b2a2cc">
+          <div>
+            <span>ϟ</span>
+            <b id="energy-value">—</b>
+          </div>
+          <label>Энергия</label>
+          <div class="meter">
+            <i id="energy-bar"></i>
+          </div>
+        </div>
+        <div class="need" style="--accent:#90bcb7">
+          <div>
+            <span>✧</span>
+            <b id="cleanliness-value">—</b>
+          </div>
+          <label>Чистота</label>
+          <div class="meter">
+            <i id="cleanliness-bar"></i>
+          </div>
+        </div>
+      </section>
+      <section class="care" aria-labelledby="care-title">
+        <div class="section-title">
+          <h2 id="care-title">Немного заботы</h2>
+          <span>много любви</span>
+        </div>
+        <div class="actions">
+          <button class="action" data-action="feed">
+            <span class="action-icon peach">🥕</span>
+            <strong>Покормить</strong>
+            <small>+25 сытости</small>
+            <span class="action-status">Угостить →</span>
+          </button>
+          <button class="action" data-action="walk">
+            <span class="action-icon green">🌿</span>
+            <strong>Погулять</strong>
+            <small>+22 счастья</small>
+            <span class="action-status">На прогулку →</span>
+          </button>
+          <button class="action" data-action="play">
+            <span class="action-icon lilac">🧶</span>
+            <strong>Поиграть</strong>
+            <small>+18 счастья</small>
+            <span class="action-status">Повеселиться →</span>
+          </button>
+          <button class="action" data-action="wash">
+            <span class="action-icon blue">🫧</span>
+            <strong>Искупать</strong>
+            <small>+35 чистоты</small>
+            <span class="action-status">Плюх-плюх →</span>
+          </button>
+        </div>
+      </section>
+      <button class="upgrade" data-action="upgrade">
+        <span class="upgrade-icon">⌂</span>
+        <span class="upgrade-copy">
+          <strong id="upgrade-title">Ещё уютнее</strong>
+          <small id="upgrade-description">Новая деталь для домика</small>
+        </span>
+        <span class="upgrade-price" id="upgrade-price">✦ 30</span>
+      </button>
+      <footer>
+        <span class="footer-heart">♡</span> Маленькие моменты. Большая дружба.<span id="demo-badge" hidden>Деморежим</span>
+      </footer>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <div id="connection" class="connection" hidden>
+        <span id="connection-text">Не удалось загрузить Пуню.</span>
+        <button id="retry">Повторить</button>
+      </div>
+      <dialog id="help-dialog">
+        <button class="close" id="close-help" aria-label="Закрыть">×</button>
+        <span class="dialog-icon">🐷</span>
+        <h2>Пуня любит заботу</h2>
+        <p>Корми, гуляй, играй и купай. За заботу — опыт и монетки. Всего 5 уровней!</p>
+        <p>У каждого действия свой таймер. Энергия восстанавливается сама: 8 в час. Сытость, счастье и чистота постепенно снижаются.</p>
+        <p>Улучшай домик за монеты раз в 6 часов. Пуня не погибает — она просто скучает ♡</p>
+        <button class="dialog-ok" id="help-ok">Будем дружить ♡</button>
+      </dialog>
+    </main>
+  </body>
+</html>
