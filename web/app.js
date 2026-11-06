@@ -9,6 +9,18 @@ let pending = false;
 let noticeTimer;
 let speechTimer;
 let refreshPending = false;
+const clothingButtons = new Map();
+const pigButton = $('pig');
+const pigCanvas = $('pig-canvas');
+const fallbackPig = pigButton.querySelector('svg');
+const showPigView = (available) => {
+  pigCanvas.hidden = !available;
+  fallbackPig.toggleAttribute('hidden', available);
+  $('rotation-controls').hidden = !available;
+  $('pig-view-message').hidden = available;
+};
+const pigView = typeof createPigView === 'function' ? createPigView(pigCanvas, showPigView) : null;
+if (!pigView) showPigView(false);
 
 tg?.ready();
 tg?.expand();
@@ -97,7 +109,20 @@ function updateButtons() {
     }
     button.disabled = disabled;
   }
-  $('pig').disabled = !pet || pending || refreshPending || Boolean(pet.activity) || (pet.ready_at.pet || 0) > now;
+  const cannotPet = !pet || pending || refreshPending || Boolean(pet.activity) || (pet.ready_at.pet || 0) > now;
+  pigButton.setAttribute('aria-disabled', String(cannotPet));
+  for (const [id, {button, status}] of clothingButtons) {
+    const item = pet.clothes[id];
+    const worn = pet.outfit[item.slot] === id;
+    const owned = pet.owned_clothes.includes(id);
+    button.dataset.clothingAction = worn ? `remove_${id}` : owned ? `wear_${id}` : `buy_clothing_${id}`;
+    button.disabled = pending || refreshPending || (!owned && pet.coins < item.price);
+    const caption = worn ? 'Снять' : owned ? 'Надеть' : `Купить · ${item.price} ✦`;
+    const description = worn ? 'На Пуне' : owned ? 'В гардеробе'
+      : pet.coins < item.price ? 'Не хватает пятачков' : 'В продаже';
+    if (button.textContent !== caption) button.textContent = caption;
+    if (status.textContent !== description) status.textContent = description;
+  }
   if (pet?.activity) {
     const activity = pet.activity === 'walk' ? '🌿 Прогулка' : '🌙 Сон';
     const remaining = pet.activity_until - now;
@@ -122,9 +147,12 @@ function render(data) {
   $('mood').textContent = pet.mood_text;
   if (!speechTimer) $('speech').textContent = pet.mood_text;
   $('scene').className = `scene room-${pet.room} mood-${pet.mood}`;
+  pigView?.update(pet.outfit, pet.mood);
+  $('fallback-bow').toggleAttribute('hidden', !pet.outfit.bow);
   $('emotion-icon').textContent = {sleeping: 'Zzz', walking: '🌿', sick: '🌡️', hungry: '🥕', tired: '💤', dirty: '🫧', sad: '💧', loved: '💕', excited: '✨', yummy: '😋', fresh: '🫧', happy: '♡'}[pet.mood];
   $('activity-status').hidden = !pet.activity;
   renderShop();
+  renderWardrobe();
   $('achievements').replaceChildren(...Object.entries(pet.achievement_catalog).map(([id, item]) => {
     const row = document.createElement('p');
     row.className = pet.achievements.includes(id) ? 'earned' : '';
@@ -166,6 +194,7 @@ async function load() {
     $('connection-text').textContent = error.message === 'Failed to fetch'
       ? 'Нет связи. Пуня подождёт ♡' : error.message;
     $('connection').hidden = false;
+    if (!pet) $('wardrobe-status').textContent = 'Гардероб появится, когда восстановится связь.';
   } finally {
     refreshPending = false;
     updateButtons();
@@ -201,7 +230,29 @@ function renderShop() {
   for (const id of Object.keys(pet.foods)) $('stock-' + id).textContent = `В кладовой: ${pet.inventory[id] || 0}`;
 }
 
-async function perform(action) {
+function renderWardrobe() {
+  $('wardrobe-status').hidden = true;
+  if (clothingButtons.size) return;
+  for (const [id, item] of Object.entries(pet.clothes)) {
+    const card = document.createElement('article');
+    card.className = 'food-card clothing-card';
+    const title = document.createElement('h3');
+    title.id = `clothing-${id}`;
+    title.textContent = `${item.icon} ${item.name}`;
+    const status = document.createElement('p');
+    status.id = `clothing-status-${id}`;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = `clothing-button-${id}`;
+    button.setAttribute('aria-labelledby', `${button.id} ${title.id}`);
+    button.setAttribute('aria-describedby', status.id);
+    card.append(title, status, button);
+    $('clothes-list').append(card);
+    clothingButtons.set(id, {button, status});
+  }
+}
+
+async function perform(action, clothing = false) {
   if (pending || refreshPending || !pet) return;
   pending = true;
   updateButtons();
@@ -210,7 +261,8 @@ async function perform(action) {
     const oldAchievements = pet.achievements.length;
     const data = await request('/api/action', action);
     render(data);
-    react(data.message);
+    if (clothing) notify(data.message);
+    else react(data.message);
     if (data.pet.level > oldLevel) notify(`Новый уровень! ${data.pet.level_name} ✦`);
     else if (data.pet.achievements.length > oldAchievements) notify('Новое достижение! Пятачки уже в кошельке 🏅');
   } catch (error) {
@@ -223,10 +275,41 @@ async function perform(action) {
   }
 }
 document.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-action]');
-  if (button && !button.disabled) perform(button.dataset.action);
+  const button = event.target.closest('[data-action], [data-clothing-action]');
+  if (!button || button.disabled) return;
+  if (button.dataset.clothingAction) perform(button.dataset.clothingAction, true);
+  else perform(button.dataset.action);
 });
-$('pig').addEventListener('click', () => perform('pet'));
+
+let drag = null;
+let skipPetClick = false;
+pigButton.addEventListener('pointerdown', (event) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  skipPetClick = false;
+  if (!pigCanvas.hidden) drag = {id: event.pointerId, x: event.clientX, y: event.clientY};
+});
+pigButton.addEventListener('pointermove', (event) => {
+  if (drag?.id !== event.pointerId) return;
+  const dx = event.clientX - drag.x;
+  if (!skipPetClick) {
+    if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(event.clientY - drag.y)) return;
+    pigButton.setPointerCapture(event.pointerId);
+    skipPetClick = true;
+  }
+  pigView.turn(dx * 0.018);
+  drag.x = event.clientX;
+});
+for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture', 'pointerleave']) {
+  pigButton.addEventListener(eventName, (event) => {
+    if (drag?.id === event.pointerId) drag = null;
+  });
+}
+pigButton.addEventListener('click', (event) => {
+  if (event.detail && skipPetClick) return;
+  if (pigButton.getAttribute('aria-disabled') === 'false') perform('pet');
+});
+$('turn-left').addEventListener('click', () => pigView?.turn(-Math.PI / 6));
+$('turn-right').addEventListener('click', () => pigView?.turn(Math.PI / 6));
 $('retry').addEventListener('click', load);
 $('help').addEventListener('click', () => $('help-dialog').showModal());
 for (const id of ['close-help', 'help-ok']) $(id).addEventListener('click', () => $('help-dialog').close());

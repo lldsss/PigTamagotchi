@@ -129,15 +129,50 @@ class ExtendedGameTests(unittest.TestCase):
             with closing(sqlite3.connect(path)) as db, db:
                 db.execute("INSERT INTO pets VALUES (?, ?)", ("old", json.dumps(old)))
             with patch("pig_tamagotchi.storage.time.time", return_value=1000):
-                self.assertEqual(store.access("old")["inventory"], {})
+                state = store.access("old")
+                self.assertEqual(state["inventory"], {})
+                self.assertEqual(state["owned_clothes"], ["bow"])
+                self.assertEqual(state["outfit"], {"bow": "bow"})
                 store.access("old", "buy_apple")
+                store.access("old", "buy_clothing_hat")
                 store.access("old", "walk")
             with patch("pig_tamagotchi.storage.time.time", return_value=2200):
                 state = Store(path).access("old")
                 self.assertEqual(state["inventory"], {"apple": 1})
-                self.assertEqual(state["coins"], 84)
+                self.assertEqual(state["coins"], 49)
+                self.assertEqual(state["owned_clothes"], ["bow", "hat"])
+                self.assertEqual(state["outfit"], {"bow": "bow", "hat": "hat"})
                 self.assertIsNone(state["activity"])
                 self.assertEqual(store.access("new")["coins"], 20)
+
+    def test_dressing_replaces_only_matching_slot_and_keeps_wardrobe(self):
+        pet = Pet(updated_at=1000, coins=200)
+        pet.act("sleep", 1000)
+        for action in ["buy_clothing_sweater", "buy_clothing_overalls", "remove_sweater"]:
+            pet.act(action, 1000)
+        self.assertEqual(pet.outfit, {"bow": "bow", "body": "overalls"})
+        pet.act("wear_sweater", 1000)
+        pet.act("remove_bow", 1000)
+        self.assertEqual(pet.outfit, {"body": "sweater"})
+        self.assertEqual(pet.owned_clothes, ["bow", "sweater", "overalls"])
+        self.assertEqual(pet.coins, 95)
+        self.assertEqual(pet.activity, "sleep")
+
+    def test_concurrent_clothing_purchase_charges_once(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store = Store(str(Path(folder) / "pets.db"))
+            store.access("player", "daily")
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                states = list(
+                    pool.map(lambda _: store.access("player", "buy_clothing_hat"), range(4))
+                )
+            for state in states:
+                self.assertEqual(state["coins"], 25)
+                self.assertEqual(state["owned_clothes"], ["bow", "hat"])
+            store.access("player", "remove_hat")
+            retry = store.access("player", "buy_clothing_hat")
+            self.assertEqual(retry["coins"], 25)
+            self.assertEqual(retry["outfit"], {"bow": "bow"})
 
     def test_concurrent_purchases_cannot_overdraw(self):
         with tempfile.TemporaryDirectory() as folder:

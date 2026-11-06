@@ -89,7 +89,7 @@ def create_app(store: Store, token: str = "", demo: bool = False) -> web.Applica
 
     async def asset(request):
         name = request.match_info["name"]
-        if name not in {"app.js", "style.css", "pig.svg"}:
+        if name not in {"app.js", "style.css", "pig.svg", "pig-3d.js"}:
             raise web.HTTPNotFound()
         return web.FileResponse(WEB / name)
 

@@ -7,6 +7,7 @@
     <title>Пуня · маленькое счастье</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="/style.css">
+    <script src="/pig-3d.js" defer></script>
     <script src="/app.js" defer></script>
   </head>
   <body>
@@ -47,7 +48,8 @@
           <div class="speech" id="speech">Привет! Я тебя ждала ♡</div>
           <div class="rug"></div><span id="emotion-icon" class="emotion-icon" aria-hidden="true">♡</span>
           <div class="pig-shadow"></div>
-          <button class="pig" id="pig" aria-label="Погладить Пуню">
+          <button type="button" class="pig" id="pig" aria-label="Погладить Пуню" aria-disabled="true">
+<canvas id="pig-canvas" aria-hidden="true" hidden></canvas>
 <svg aria-label="Пуня — розовая свинка" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 280" fill="none">
 <defs>
 <radialGradient id="body" cx=".35" cy=".25" r=".85"><stop stop-color="#ffe1e6"/><stop offset="1" stop-color="#efa6bc"/></radialGradient>
@@ -65,7 +67,7 @@
 <ellipse cx="150" cy="177" rx="32" ry="24" fill="#f3a6bd" stroke="#e695af" stroke-width="2"/>
 <ellipse cx="138" cy="178" rx="5" ry="7" fill="#ca7a97"/><ellipse cx="162" cy="178" rx="5" ry="7" fill="#ca7a97"/>
 <path class="mouth" d="M141 211q9 8 18 0" stroke="#a3637a" stroke-width="3" stroke-linecap="round"/>
-<path d="m193 76 10-14 11 12 13-8 1 22" fill="#e092ad"/><circle cx="211" cy="78" r="6" fill="#f9cbd8"/>
+<g id="fallback-bow"><path d="m193 76 10-14 11 12 13-8 1 22" fill="#e092ad"/><circle cx="211" cy="78" r="6" fill="#f9cbd8"/></g>
 </svg>
 
           </button>
@@ -73,6 +75,15 @@
           <div class="cushion" aria-hidden="true"></div>
           <span class="sparkle s1">✧</span>
           <span class="sparkle s2">✧</span>
+        </div>
+        <div class="pet-tools">
+          <div id="rotation-controls" class="rotation-controls" role="group" aria-label="Поворот Пуни" hidden>
+            <button type="button" id="turn-left" aria-label="Повернуть влево">↶</button>
+            <span>Поверни Пуню</span>
+            <button type="button" id="turn-right" aria-label="Повернуть вправо">↷</button>
+          </div>
+          <p id="pig-view-message" class="pig-view-message" hidden>3D недоступно</p>
+          <a href="#wardrobe">🎀 Гардероб</a>
         </div>
         <div id="activity-status" class="activity-status" role="status" hidden></div>
         <div class="pet-info">
@@ -179,6 +190,12 @@
         </span>
         <span class="upgrade-price" id="upgrade-price">✦ 30</span>
       </button>
+      <section id="wardrobe" aria-labelledby="wardrobe-title">
+        <div class="section-title"><h2 id="wardrobe-title">Гардероб Пуни</h2><a href="#scene">К Пуне ↑</a></div>
+        <p class="section-hint">Купленная вещь сразу появится на Пуне. Свитер и комбинезон можно носить по очереди.</p>
+        <p class="section-hint" id="wardrobe-status" role="status">Загружаем гардероб…</p>
+        <div id="clothes-list" class="food-list"></div>
+      </section>
       <section class="shop" aria-labelledby="shop-title">
         <div class="section-title"><h2 id="shop-title">Лавка угощений</h2><span>покупай и угощай</span></div>
         <p class="section-hint">Пятачки — игровая валюта за заботу и прогулки. Простой перекус всегда бесплатный.</p>
@@ -201,6 +218,7 @@
         <span class="dialog-icon">🐷</span>
         <h2>Пуня любит заботу</h2>
         <p>За заботу получай пятачки и опыт. Покупай еду в лавке, а потом угощай из кладовой. Бесплатный перекус тоже даёт сытость.</p>
+        <p>Проведи по Пуне влево или вправо, чтобы повернуть её. Коснись один раз, чтобы погладить. Наряды можно менять в гардеробе.</p>
         <p>Прогулка длится 20 минут и приносит 20 пятачков, сон — 2 часа и восстанавливает 60 энергии. Они продолжаются, даже если закрыть игру. Подарок: 40 пятачков каждые 24 часа.</p>
         <p>Кормить можно раз в 20 минут, играть — раз в 30 минут, купать — раз в час. Энергия также восстанавливается сама: 8 в час.</p>
         <p>Если сытость или чистота ниже 15% в течение 12 часов, Пуня заболеет. Подними обе до 30% и дай лекарство за 30 пятачков. Пуня не погибает ♡</p>

@@ -66,3 +66,20 @@ class ApiHandlerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(data["pet"]["foods"]), 4)
         self.assertEqual((await self.request("/api/action", {"action": "pet"}))[0], 409)
         self.assertEqual((await self.request("/api/action", {"action": "buy_carrot"}))[0], 200)
+
+    async def test_wardrobe_purchase_uses_verified_player_and_catalog_price(self):
+        action = {"action": "buy_clothing_glasses", "price": 0}
+        self.assertEqual((await self.request("/api/action", action, signed=False))[0], 401)
+        self.assertEqual((await self.request("/api/action", action))[0], 409)
+        self.assertEqual((await self.request("/api/action", {"action": "wear_glasses"}))[0], 409)
+        self.assertEqual(
+            (await self.request("/api/action", {"action": "buy_clothing_fake"}))[0], 400
+        )
+        await self.request("/api/action", {"action": "daily"})
+        status, data = await self.request("/api/action", action)
+        self.assertEqual(status, 200)
+        self.assertEqual(data["pet"]["coins"], 35)
+        self.assertEqual(data["pet"]["outfit"], {"bow": "bow", "glasses": "glasses"})
+        _, other = await self.request("/api/pet", user=43)
+        self.assertEqual(other["pet"]["owned_clothes"], ["bow"])
+        self.assertEqual(other["pet"]["outfit"], {"bow": "bow"})

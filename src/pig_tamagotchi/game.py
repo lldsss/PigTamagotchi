@@ -23,6 +23,13 @@ FOODS = {
     "porridge": {"name": "Каша", "icon": "🥣", "price": 22, "satiety": 60, "joy": 5},
     "berry": {"name": "Ягодки", "icon": "🫐", "price": 28, "satiety": 25, "joy": 25},
 }
+CLOTHES = {
+    "bow": {"name": "Бантик", "icon": "🎀", "slot": "bow", "price": 0},
+    "glasses": {"name": "Очки", "icon": "👓", "slot": "glasses", "price": 25},
+    "hat": {"name": "Панамка", "icon": "👒", "slot": "hat", "price": 35},
+    "sweater": {"name": "Свитер", "icon": "🧶", "slot": "body", "price": 45},
+    "overalls": {"name": "Комбинезон", "icon": "👖", "slot": "body", "price": 60},
+}
 ACHIEVEMENTS = {
     "friend": ("Первые объятия", "pet", 1, 10),
     "explorer": ("Следопыт", "walk", 3, 30),
@@ -46,6 +53,12 @@ MESSAGES = {
 for food_id, food in FOODS.items():
     MESSAGES[f"buy_{food_id}"] = f"{food['name']} теперь в кладовой!"
     MESSAGES[f"eat_{food_id}"] = f"М-м-м, {food['name'].lower()}! Спасибо ♡"
+
+for clothing_id, clothing in CLOTHES.items():
+    if clothing["price"]:
+        MESSAGES[f"buy_clothing_{clothing_id}"] = f"Покупка в гардеробе: {clothing['name']} ♡"
+    MESSAGES[f"wear_{clothing_id}"] = "Пуня примеряет новую вещь ♡"
+    MESSAGES[f"remove_{clothing_id}"] = "Пуня сняла эту вещь."
 
 
 class GameError(ValueError):
@@ -73,6 +86,8 @@ class Pet:
     activity_until: float = 0
     emotion: str = "happy"
     emotion_until: float = 0
+    owned_clothes: list[str] = field(default_factory=lambda: ["bow"])
+    outfit: dict[str, str] = field(default_factory=lambda: {"bow": "bow"})
 
     def refresh(self, now: float) -> None:
         if self.activity and now > self.activity_until:
@@ -143,10 +158,32 @@ class Pet:
             return self.emotion, texts.get(self.emotion, "Счастлива быть рядом")
         return "happy", "Счастлива быть рядом"
 
+    def dress(self, operation: str, clothing_id: str) -> None:
+        clothing = CLOTHES[clothing_id]
+        slot = clothing["slot"]
+        if operation == "buy_clothing":
+            if clothing_id in self.owned_clothes:
+                return
+            if self.coins < clothing["price"]:
+                raise GameError("Не хватает пятачков на эту вещь.")
+            self.coins -= clothing["price"]
+            self.owned_clothes.append(clothing_id)
+        if clothing_id not in self.owned_clothes:
+            raise GameError("Сначала купи эту вещь в гардеробе.")
+        if operation == "remove":
+            if self.outfit.get(slot) == clothing_id:
+                del self.outfit[slot]
+        else:
+            self.outfit[slot] = clothing_id
+
     def act(self, action: str, now: float) -> None:
         if action not in MESSAGES:
             raise GameError("Такого действия нет.")
         self.refresh(now)
+        operation, _, clothing_id = action.rpartition("_")
+        if operation in {"buy_clothing", "wear", "remove"}:
+            self.dress(operation, clothing_id)
+            return
         if self.activity and action != "daily" and not action.startswith("buy_"):
             raise GameError("Пуня спит или гуляет. Дождись её возвращения ♡")
         if self.ready_at.get(action, 0) > now:
@@ -253,6 +290,7 @@ class Pet:
             "mood": mood,
             "mood_text": mood_text,
             "foods": FOODS,
+            "clothes": CLOTHES,
             "achievement_catalog": {
                 key: {
                     "name": name,

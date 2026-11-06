@@ -81,7 +81,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
             await client.post("/api/action", json={"action": "play"})
             response = await client.get("/api/pet")
             self.assertEqual((await response.json())["pet"]["coins"], 30)
-            for path in ["/", "/style.css", "/app.js", "/pig.svg"]:
+            for path in ["/", "/style.css", "/app.js", "/pig.svg", "/pig-3d.js"]:
                 response = await client.get(path)
                 self.assertEqual(response.status, 200)
             self.assertEqual((await client.get("/.env")).status, 404)
