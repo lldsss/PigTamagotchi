@@ -12,9 +12,9 @@ class GameTests(unittest.TestCase):
         pet = Pet(updated_at=1000)
         pet.act("feed", 1000)
         with self.assertRaises(GameError):
-            pet.act("feed", 1059)
+            pet.act("feed", 2199)
         self.assertEqual(pet.coins, 28)
-        pet.act("feed", 1060)
+        pet.act("feed", 2200)
         self.assertEqual(pet.coins, 36)
 
     def test_offline_decay_and_recovery_are_bounded(self):

@@ -15,9 +15,9 @@
         <a class="brand" href="/" aria-label="Пуня, главная">
           <span class="brand-icon">♧</span> пуня<span class="brand-dot">.</span>
         </a>
-        <div class="wallet" aria-label="Монеты">
+        <div class="wallet" aria-label="Пятачки">
           <span class="coin">✦</span>
-          <b id="coins">—</b>
+          <b id="coins">—</b><span>пятачков</span>
         </div>
       </header>
       <div class="intro">
@@ -45,16 +45,36 @@
           </div>
           <div class="garland" aria-hidden="true">✧ · ♡ · ✧ · ♡ · ✧</div>
           <div class="speech" id="speech">Привет! Я тебя ждала ♡</div>
-          <div class="rug"></div>
+          <div class="rug"></div><span id="emotion-icon" class="emotion-icon" aria-hidden="true">♡</span>
           <div class="pig-shadow"></div>
           <button class="pig" id="pig" aria-label="Погладить Пуню">
-            <img src="/pig.svg" alt="Пуня — розовая свинка с бантиком" draggable="false">
+<svg aria-label="Пуня — розовая свинка" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 280" fill="none">
+<defs>
+<radialGradient id="body" cx=".35" cy=".25" r=".85"><stop stop-color="#ffe1e6"/><stop offset="1" stop-color="#efa6bc"/></radialGradient>
+<linearGradient id="ear" x2="1" y2="1"><stop stop-color="#f9c5d3"/><stop offset="1" stop-color="#ed9db6"/></linearGradient>
+</defs>
+<path d="M247 162c38-30 38 18 14 12-15-4 2-23 10-8" stroke="#dd8aa6" stroke-width="9" stroke-linecap="round"/>
+<path d="M79 101C41 81 53 28 68 31c23 4 43 32 44 49M187 79c8-27 39-49 49-43 13 9 11 57-15 68" fill="url(#ear)" stroke="#e8a0b7" stroke-width="3"/>
+<path d="M73 76c-6-11-8-24-5-29 10 4 19 15 24 26m113 0c6-12 17-21 23-22 2 9-2 21-8 29" stroke="#df8ba7" stroke-width="8" stroke-linecap="round"/>
+<path d="M88 220v22c0 17 28 17 29 0v-11m66 0v11c0 17 28 17 29 0v-23" fill="#efa7bd" stroke="#e39ab1" stroke-width="3"/>
+<path d="M51 157c0-58 37-94 99-94s99 36 99 94c0 54-37 80-99 80S51 211 51 157Z" fill="url(#body)" stroke="#e9a5ba" stroke-width="3"/>
+<ellipse cx="102" cy="109" rx="25" ry="12" fill="#fff1f4" opacity=".5" transform="rotate(-22 102 109)"/>
+<ellipse cx="89" cy="170" rx="18" ry="11" fill="#ed8eaa" opacity=".55"/><ellipse cx="212" cy="170" rx="18" ry="11" fill="#ed8eaa" opacity=".55"/>
+<g class="eyes" fill="#744b57"><ellipse cx="109" cy="147" rx="6" ry="9"/><ellipse cx="192" cy="147" rx="6" ry="9"/></g>
+<g class="eye-shine" fill="white"><circle cx="111" cy="144" r="2"/><circle cx="194" cy="144" r="2"/></g>
+<ellipse cx="150" cy="177" rx="32" ry="24" fill="#f3a6bd" stroke="#e695af" stroke-width="2"/>
+<ellipse cx="138" cy="178" rx="5" ry="7" fill="#ca7a97"/><ellipse cx="162" cy="178" rx="5" ry="7" fill="#ca7a97"/>
+<path class="mouth" d="M141 211q9 8 18 0" stroke="#a3637a" stroke-width="3" stroke-linecap="round"/>
+<path d="m193 76 10-14 11 12 13-8 1 22" fill="#e092ad"/><circle cx="211" cy="78" r="6" fill="#f9cbd8"/>
+</svg>
+
           </button>
           <div class="flowers" aria-hidden="true">✿</div>
           <div class="cushion" aria-hidden="true"></div>
           <span class="sparkle s1">✧</span>
           <span class="sparkle s2">✧</span>
         </div>
+        <div id="activity-status" class="activity-status" role="status" hidden></div>
         <div class="pet-info">
           <div>
             <h2>Пуня <span>♀</span>
@@ -123,14 +143,14 @@
         <div class="actions">
           <button class="action" data-action="feed">
             <span class="action-icon peach">🥕</span>
-            <strong>Покормить</strong>
-            <small>+25 сытости</small>
+            <strong>Перекус</strong>
+            <small>Бесплатно · +25</small>
             <span class="action-status">Угостить →</span>
           </button>
           <button class="action" data-action="walk">
             <span class="action-icon green">🌿</span>
             <strong>Погулять</strong>
-            <small>+22 счастья</small>
+            <small>20 мин · +20 ✦</small>
             <span class="action-status">На прогулку →</span>
           </button>
           <button class="action" data-action="play">
@@ -145,6 +165,10 @@
             <small>+35 чистоты</small>
             <span class="action-status">Плюх-плюх →</span>
           </button>
+          <button class="action" data-action="pet"><span class="action-icon peach">🤍</span><strong>Обнять</strong><small>+8 счастья</small><span class="action-status">Обнимашки →</span></button>
+          <button class="action" data-action="sleep"><span class="action-icon lilac">🌙</span><strong>Уложить</strong><small>2 часа · +60 ϟ</small><span class="action-status">Баю-бай →</span></button>
+          <button class="action" data-action="daily"><span class="action-icon green">🎁</span><strong>Подарок</strong><small>+40 ✦ / 24 ч</small><span class="action-status">Забрать →</span></button>
+          <button class="action" data-action="heal"><span class="action-icon blue">💊</span><strong>Лечить</strong><small>30 пятачков</small><span class="action-status">Лекарство →</span></button>
         </div>
       </section>
       <button class="upgrade" data-action="upgrade">
@@ -155,6 +179,15 @@
         </span>
         <span class="upgrade-price" id="upgrade-price">✦ 30</span>
       </button>
+      <section class="shop" aria-labelledby="shop-title">
+        <div class="section-title"><h2 id="shop-title">Лавка угощений</h2><span>покупай и угощай</span></div>
+        <p class="section-hint">Пятачки — игровая валюта за заботу и прогулки. Простой перекус всегда бесплатный.</p>
+        <div id="food-list" class="food-list"></div>
+      </section>
+      <section aria-labelledby="achievements-title">
+        <div class="section-title"><h2 id="achievements-title">Наши маленькие победы</h2></div>
+        <div id="achievements" class="achievements"></div>
+      </section>
       <footer>
         <span class="footer-heart">♡</span> Маленькие моменты. Большая дружба.<span id="demo-badge" hidden>Деморежим</span>
       </footer>
@@ -167,9 +200,10 @@
         <button class="close" id="close-help" aria-label="Закрыть">×</button>
         <span class="dialog-icon">🐷</span>
         <h2>Пуня любит заботу</h2>
-        <p>Корми, гуляй, играй и купай. За заботу — опыт и монетки. Всего 5 уровней!</p>
-        <p>У каждого действия свой таймер. Энергия восстанавливается сама: 8 в час. Сытость, счастье и чистота постепенно снижаются.</p>
-        <p>Улучшай домик за монеты раз в 6 часов. Пуня не погибает — она просто скучает ♡</p>
+        <p>За заботу получай пятачки и опыт. Покупай еду в лавке, а потом угощай из кладовой. Бесплатный перекус тоже даёт сытость.</p>
+        <p>Прогулка длится 20 минут и приносит 20 пятачков, сон — 2 часа и восстанавливает 60 энергии. Они продолжаются, даже если закрыть игру. Подарок: 40 пятачков каждые 24 часа.</p>
+        <p>Кормить можно раз в 20 минут, играть — раз в 30 минут, купать — раз в час. Энергия также восстанавливается сама: 8 в час.</p>
+        <p>Если сытость или чистота ниже 15% в течение 12 часов, Пуня заболеет. Подними обе до 30% и дай лекарство за 30 пятачков. Пуня не погибает ♡</p>
         <button class="dialog-ok" id="help-ok">Будем дружить ♡</button>
       </dialog>
     </main>

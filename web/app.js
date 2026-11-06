@@ -1,8 +1,8 @@
 /* Прогресс и таймеры приходят с сервера. В браузере — только отображение. */
 const tg = window.Telegram?.WebApp;
 const $ = (id) => document.getElementById(id);
-const buttons = [...document.querySelectorAll('[data-action]')];
-const labels = {feed: 'Угостить →', walk: 'На прогулку →', play: 'Повеселиться →', wash: 'Плюх-плюх →'};
+let buttons = [...document.querySelectorAll('[data-action]')];
+const labels = {feed: 'Угостить →', walk: 'На прогулку →', play: 'Повеселиться →', wash: 'Плюх-плюх →', pet: 'Обнимашки →', sleep: 'Баю-бай →', daily: 'Забрать →', heal: 'Лекарство →'};
 let pet = null;
 let clockOffset = 0;
 let pending = false;
@@ -26,7 +26,7 @@ function notify(text) {
 function react(text) {
   $('speech').textContent = text;
   clearTimeout(speechTimer);
-  speechTimer = setTimeout(() => { $('speech').textContent = 'Мне хорошо с тобой ♡'; }, 5500);
+  speechTimer = setTimeout(() => { $('speech').textContent = pet?.mood_text || 'Мне хорошо с тобой ♡'; speechTimer = null; }, 5500);
   $('pig').classList.remove('bounce');
   requestAnimationFrame(() => requestAnimationFrame(() => $('pig').classList.add('bounce')));
   for (let i = 0; i < 5; i++) {
@@ -48,23 +48,61 @@ function timeLeft(seconds) {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
+function buttonStatus(action, remaining) {
+  if (!pet) return 'Загружаем…';
+  if (pending || refreshPending) return 'Подожди…';
+  if (remaining > 0) return `◷ ${timeLeft(remaining)}`;
+  if (pet.activity && action !== 'daily' && !action.startsWith('buy_')) return 'После отдыха';
+  if (['walk', 'play'].includes(action)) {
+    if (pet.sick) return 'Сначала лечение';
+    if (pet.energy < 12) return 'Нужен отдых';
+  }
+  if (action === 'heal') {
+    if (!pet.sick) return 'Здорова ♡';
+    if (pet.satiety < 30 || pet.cleanliness < 30) return 'Нужен уход';
+    if (pet.coins < 30) return 'Нужно 30 ✦';
+  }
+  if (action.startsWith('buy_')) {
+    if (pet.coins < pet.foods[action.slice(4)].price) return 'Не хватает ✦';
+    if ((pet.inventory[action.slice(4)] || 0) >= 99) return 'Кладовая полна';
+    return 'Купить →';
+  }
+  if (action.startsWith('eat_')) return pet.inventory[action.slice(4)] > 0 ? 'Угостить →' : 'Нет в кладовой';
+  return labels[action];
+}
+
 function updateButtons() {
   const now = Date.now() / 1000 + clockOffset;
   for (const button of buttons) {
     const action = button.dataset.action;
-    const remaining = pet ? Math.max(0, (pet.ready_at[action] || 0) - now) : 0;
+    const timer = action.startsWith('eat_') ? 'feed' : action;
+    const remaining = pet ? Math.max(0, (pet.ready_at[timer] || 0) - now) : 0;
     let disabled = !pet || pending || refreshPending || remaining > 0;
+    disabled ||= Boolean(pet?.activity) && action !== 'daily' && !action.startsWith('buy_');
     if (action === 'upgrade') {
       disabled ||= pet?.upgrade_cost == null || pet.coins < pet.upgrade_cost;
       $('upgrade-price').textContent = pet?.upgrade_cost == null && pet
         ? '♡ MAX' : remaining > 0 ? timeLeft(remaining) : `✦ ${pet?.upgrade_cost ?? 30}`;
     } else {
-      disabled ||= ['walk', 'play'].includes(action) && pet?.energy < 12;
-      button.querySelector('.action-status').textContent = remaining > 0
-        ? `◷ ${timeLeft(remaining)}` : ['walk', 'play'].includes(action) && pet?.energy < 12
-          ? 'Нужен отдых' : labels[action];
+      if (pet) {
+        disabled ||= ['walk', 'play'].includes(action) && (pet.energy < 12 || pet.sick);
+        disabled ||= action === 'heal' && (!pet.sick || pet.coins < 30 || pet.satiety < 30 || pet.cleanliness < 30);
+        if (action.startsWith('buy_')) {
+          const id = action.slice(4);
+          disabled ||= pet.coins < pet.foods[id].price || (pet.inventory[id] || 0) >= 99;
+        }
+        if (action.startsWith('eat_')) disabled ||= !(pet.inventory[action.slice(4)] > 0);
+      }
+      button.querySelector('.action-status').textContent = buttonStatus(action, remaining);
     }
     button.disabled = disabled;
+  }
+  $('pig').disabled = !pet || pending || refreshPending || Boolean(pet.activity) || (pet.ready_at.pet || 0) > now;
+  if (pet?.activity) {
+    const activity = pet.activity === 'walk' ? '🌿 Прогулка' : '🌙 Сон';
+    const remaining = pet.activity_until - now;
+    $('activity-status').textContent = remaining > 0
+      ? `${activity} · ещё ${timeLeft(remaining)}` : 'Проверяем возвращение…';
   }
 }
 
@@ -81,10 +119,18 @@ function render(data) {
     $(stat + '-value').textContent = `${Math.round(pet[stat])}%`;
     $(stat + '-bar').style.width = `${pet[stat]}%`;
   }
-  $('mood').textContent = pet.satiety < 30 ? 'Мечтает о чём-нибудь вкусном' : pet.energy < 20
-    ? 'Немного устала, отдыхает' : pet.cleanliness < 30 ? 'Пора устроить плюх-плюх' : pet.joy < 30
-      ? 'Скучает по тебе' : 'Счастлива быть рядом';
-  $('scene').className = `scene room-${pet.room}`;
+  $('mood').textContent = pet.mood_text;
+  if (!speechTimer) $('speech').textContent = pet.mood_text;
+  $('scene').className = `scene room-${pet.room} mood-${pet.mood}`;
+  $('emotion-icon').textContent = {sleeping: 'Zzz', walking: '🌿', sick: '🌡️', hungry: '🥕', tired: '💤', dirty: '🫧', sad: '💧', loved: '💕', excited: '✨', yummy: '😋', fresh: '🫧', happy: '♡'}[pet.mood];
+  $('activity-status').hidden = !pet.activity;
+  renderShop();
+  $('achievements').replaceChildren(...Object.entries(pet.achievement_catalog).map(([id, item]) => {
+    const row = document.createElement('p');
+    row.className = pet.achievements.includes(id) ? 'earned' : '';
+    row.textContent = `${pet.achievements.includes(id) ? '🏅' : '○'} ${item.name} · ${item.progress}/${item.target} · +${item.reward} ✦`;
+    return row;
+  }));
   $('room-name').textContent = ['Уютный уголок', 'Мягкие облачка', 'Цветочное настроение', 'Домик мечты'][pet.room];
   $('upgrade-title').textContent = pet.room === 3 ? 'Домик мечты' : 'Ещё уютнее';
   $('upgrade-description').textContent = [
@@ -126,34 +172,69 @@ async function load() {
   }
 }
 
-for (const button of buttons) {
-  button.addEventListener('click', async () => {
-    if (pending || !pet) return;
-    pending = true;
-    updateButtons();
-    try {
-      const oldLevel = pet.level;
-      const data = await request('/api/action', button.dataset.action);
-      render(data);
-      react(data.message);
-      if (data.pet.level > oldLevel) notify(`Новый уровень! ${data.pet.level_name} ✦`);
-    } catch (error) {
-      notify(error.message);
-      // Обновление состояния также восстанавливает таймер после потери ответа.
-      pending = false;
-      await load();
-    } finally {
-      pending = false;
-      updateButtons();
+function renderShop() {
+  if (!$('food-list').children.length) {
+    for (const [id, food] of Object.entries(pet.foods)) {
+      const row = document.createElement('article');
+      row.className = 'food-card';
+      const title = document.createElement('h3');
+      title.textContent = `${food.icon} ${food.name}`;
+      const detail = document.createElement('p');
+      detail.textContent = `+${food.satiety} сытости · +${food.joy} счастья`;
+      const stock = document.createElement('p');
+      stock.id = `stock-${id}`;
+      row.append(title, detail, stock);
+      for (const kind of ['buy', 'eat']) {
+        const button = document.createElement('button');
+        button.dataset.action = `${kind}_${id}`;
+        const caption = document.createElement('span');
+        caption.textContent = kind === 'buy' ? `Купить · ${food.price} ✦` : 'Угостить';
+        const status = document.createElement('span');
+        status.className = 'action-status';
+        button.append(caption, status);
+        row.append(button);
+      }
+      $('food-list').append(row);
     }
-  });
+    buttons = [...document.querySelectorAll('[data-action]')];
+  }
+  for (const id of Object.keys(pet.foods)) $('stock-' + id).textContent = `В кладовой: ${pet.inventory[id] || 0}`;
 }
-$('pig').addEventListener('click', () => react('Хрю! Обнимаю тебя ♡'));
+
+async function perform(action) {
+  if (pending || refreshPending || !pet) return;
+  pending = true;
+  updateButtons();
+  try {
+    const oldLevel = pet.level;
+    const oldAchievements = pet.achievements.length;
+    const data = await request('/api/action', action);
+    render(data);
+    react(data.message);
+    if (data.pet.level > oldLevel) notify(`Новый уровень! ${data.pet.level_name} ✦`);
+    else if (data.pet.achievements.length > oldAchievements) notify('Новое достижение! Пятачки уже в кошельке 🏅');
+  } catch (error) {
+    notify(error.message);
+    pending = false;
+    await load();
+  } finally {
+    pending = false;
+    updateButtons();
+  }
+}
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-action]');
+  if (button && !button.disabled) perform(button.dataset.action);
+});
+$('pig').addEventListener('click', () => perform('pet'));
 $('retry').addEventListener('click', load);
 $('help').addEventListener('click', () => $('help-dialog').showModal());
 for (const id of ['close-help', 'help-ok']) $(id).addEventListener('click', () => $('help-dialog').close());
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
-setInterval(updateButtons, 1000);
+setInterval(() => {
+  updateButtons();
+  if (pet?.activity && pet.activity_until <= Date.now() / 1000 + clockOffset) load();
+}, 1000);
 setInterval(() => { if (!document.hidden) load(); }, 30000);
 updateButtons();
 load();

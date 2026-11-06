@@ -893,3 +893,160 @@ dialog p {
     transition:none!important;
   }
 }
+
+.pig svg {
+  width:100%;
+  height:100%;
+}
+
+.emotion-icon {
+  position:absolute;
+  right:20%;
+  top:77px;
+  z-index:5;
+  font-size:25px;
+  color:#c87f9f;
+  pointer-events:none;
+}
+
+.activity-status {
+  padding:10px 16px;
+  background:#eef2e7;
+  font-size:12px;
+  text-align:center;
+}
+
+.mood-walking {
+  background:linear-gradient(#e3f1f5 74%,#c8dcb6 74%);
+}
+
+.mood-walking .pig {
+  animation:bounce 1.8s infinite;
+}
+
+.mood-sleeping {
+  background:linear-gradient(#e6dfef 74%,#d6cbdc 74%);
+}
+
+.mood-sleeping .eyes,.mood-tired .eyes {
+  transform:translateY(117.6px) scaleY(.2);
+}
+
+.mood-sleeping .eye-shine,.mood-tired .eye-shine {
+  display:none;
+}
+
+.mood-sad .mouth,.mood-sick .mouth,.mood-hungry .mouth {
+  transform:translateY(430px) scaleY(-1);
+}
+
+.mood-sick .pig svg {
+  filter:saturate(.4);
+}
+
+.mood-loved .pig {
+  animation:breathe 1.5s infinite;
+}
+
+.mood-excited .pig {
+  animation:bounce 1s infinite;
+}
+
+.mood-dirty .pig svg {
+  filter:sepia(.55);
+}
+
+.mood-fresh .sparkle {
+  color:#65b4b0;
+  font-size:30px;
+}
+
+.section-hint {
+  font-size:12px;
+  line-height:1.6;
+  color:#a68d96;
+  margin-bottom:12px;
+}
+
+.food-list {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.food-card {
+  border:1px solid var(--border);
+  background:var(--white);
+  border-radius:17px;
+  padding:12px;
+}
+
+.food-card h3 {
+  margin:0 0 7px;
+  font-size:14px;
+}
+
+.food-card p {
+  font-size:11px;
+  line-height:1.8;
+}
+
+.food-card button {
+  width:100%;
+  min-height:44px;
+  border-radius:10px;
+  margin-top:7px;
+  background:#f5e4eb;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+.food-card button .action-status {
+  margin:2px 0 0;
+}
+
+.food-card button:disabled {
+  opacity:.55;
+}
+
+.achievements p {
+  background:#fffafc;
+  border:1px solid var(--border);
+  padding:12px;
+  border-radius:12px;
+  font-size:12px;
+  margin:7px 0;
+  color:#a68d96;
+}
+
+.achievements .earned {
+  background:#f5eddb;
+  color:#947847;
+}
+
+.speech {
+  white-space:normal;
+  width:max-content;
+  max-width:90%;
+  text-align:center;
+}
+
+@media(max-width:360px) {
+  .actions {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .wallet {
+    font-size:11px;
+    gap:5px;
+    padding:7px 10px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .pig {
+    animation:none!important;
+  }
+}

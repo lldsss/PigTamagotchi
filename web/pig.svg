@@ -10,10 +10,10 @@
 <path d="M51 157c0-58 37-94 99-94s99 36 99 94c0 54-37 80-99 80S51 211 51 157Z" fill="url(#body)" stroke="#e9a5ba" stroke-width="3"/>
 <ellipse cx="102" cy="109" rx="25" ry="12" fill="#fff1f4" opacity=".5" transform="rotate(-22 102 109)"/>
 <ellipse cx="89" cy="170" rx="18" ry="11" fill="#ed8eaa" opacity=".55"/><ellipse cx="212" cy="170" rx="18" ry="11" fill="#ed8eaa" opacity=".55"/>
-<g fill="#744b57"><ellipse cx="109" cy="147" rx="6" ry="9"/><ellipse cx="192" cy="147" rx="6" ry="9"/></g>
-<g fill="white"><circle cx="111" cy="144" r="2"/><circle cx="194" cy="144" r="2"/></g>
+<g class="eyes" fill="#744b57"><ellipse cx="109" cy="147" rx="6" ry="9"/><ellipse cx="192" cy="147" rx="6" ry="9"/></g>
+<g class="eye-shine" fill="white"><circle cx="111" cy="144" r="2"/><circle cx="194" cy="144" r="2"/></g>
 <ellipse cx="150" cy="177" rx="32" ry="24" fill="#f3a6bd" stroke="#e695af" stroke-width="2"/>
 <ellipse cx="138" cy="178" rx="5" ry="7" fill="#ca7a97"/><ellipse cx="162" cy="178" rx="5" ry="7" fill="#ca7a97"/>
-<path d="M141 211q9 8 18 0" stroke="#a3637a" stroke-width="3" stroke-linecap="round"/>
+<path class="mouth" d="M141 211q9 8 18 0" stroke="#a3637a" stroke-width="3" stroke-linecap="round"/>
 <path d="m193 76 10-14 11 12 13-8 1 22" fill="#e092ad"/><circle cx="211" cy="78" r="6" fill="#f9cbd8"/>
 </svg>
